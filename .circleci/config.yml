@@ -18,15 +18,12 @@ jobs:
             apt-get update
             apt-get -y install mysql-server
             service mysql start
-
             # Wait for MySQL to start
             sleep 5
-
       - run:
           name: Install flyway
           command: |
             curl https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/5.1.1/flyway-commandline-5.1.1-linux-x64.tar.gz | tar xvz
-
       - run:
           name: Create test database and migrate
           command: |
@@ -35,13 +32,11 @@ jobs:
             flyway-*/flyway -url="jdbc:mysql://localhost:3306/tracker_backlog_dotnet_test" -user=tracker_dotnet -password=password  -locations=filesystem:Databases/backlog-database migrate
             flyway-*/flyway -url="jdbc:mysql://localhost:3306/tracker_registration_dotnet_test" -user=tracker_dotnet -password=password  -locations=filesystem:Databases/registration-database migrate
             flyway-*/flyway -url="jdbc:mysql://localhost:3306/tracker_timesheets_dotnet_test" -user=tracker_dotnet -password=password  -locations=filesystem:Databases/timesheets-database migrate
-
       - run:
           name: Test and build
           command: |
             dotnet test
             bash ./scripts/build.sh $CIRCLE_SHA1
-
       - store_artifacts:
           path: artifacts
 
@@ -68,28 +63,23 @@ jobs:
             echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
             apt-get update
             apt-get install cf-cli
-
       - run:
           name: Install jq
           command: |
             apt-get -y install jq
-
       - run:
           name: Install flyway
           command: |
             curl https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/5.1.1/flyway-commandline-5.1.1-linux-x64.tar.gz | tar xvz
-
       - run:
           name: Deploy
           command: |
             mkdir -p $EXTRACT_DEST
             tar -xvzf artifacts/allocations-server-$CIRCLE_SHA1.tgz -C $EXTRACT_DEST
             cd $EXTRACT_DEST
-
             cf login -a $CF_API -u "$CF_USERNAME" -p "$CF_PASSWORD" -o "$CF_ORG" -s "$CF_SPACE"
             cf push -f manifest-allocations.yml
             bash ./migrate-databases.sh tracker-allocations /tmp/extracted-archive/migrations /root/project
-
   deployBacklog:
     docker:
       - image: 'microsoft/dotnet:2-sdk'
@@ -108,28 +98,23 @@ jobs:
             echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
             apt-get update
             apt-get install cf-cli
-
       - run:
           name: Install jq
           command: |
             apt-get -y install jq
-
       - run:
           name: Install flyway
           command: |
             curl https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/5.1.1/flyway-commandline-5.1.1-linux-x64.tar.gz | tar xvz
-
       - run:
           name: Deploy
           command: |
             mkdir -p $EXTRACT_DEST
             tar -xvzf artifacts/backlog-server-$CIRCLE_SHA1.tgz -C $EXTRACT_DEST
             cd $EXTRACT_DEST
-
             cf login -a $CF_API -u "$CF_USERNAME" -p "$CF_PASSWORD" -o "$CF_ORG" -s "$CF_SPACE"
             cf push -f manifest-backlog.yml
             bash ./migrate-databases.sh tracker-backlog /tmp/extracted-archive/migrations /root/project
-
   deployRegistration:
     docker:
       - image: 'microsoft/dotnet:2-sdk'
@@ -148,28 +133,23 @@ jobs:
             echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
             apt-get update
             apt-get install cf-cli
-
       - run:
           name: Install jq
           command: |
             apt-get -y install jq
-
       - run:
           name: Install flyway
           command: |
             curl https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/5.1.1/flyway-commandline-5.1.1-linux-x64.tar.gz | tar xvz
-
       - run:
           name: Deploy
           command: |
             mkdir -p $EXTRACT_DEST
             tar -xvzf artifacts/registration-server-$CIRCLE_SHA1.tgz -C $EXTRACT_DEST
             cd $EXTRACT_DEST
-
             cf login -a $CF_API -u "$CF_USERNAME" -p "$CF_PASSWORD" -o "$CF_ORG" -s "$CF_SPACE"
             cf push -f manifest-registration.yml
             bash ./migrate-databases.sh tracker-registration /tmp/extracted-archive/migrations /root/project
-
   deployTimesheets:
     docker:
       - image: 'microsoft/dotnet:2-sdk'
@@ -188,29 +168,23 @@ jobs:
             echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
             apt-get update
             apt-get install cf-cli
-
       - run:
           name: Install jq
           command: |
             apt-get -y install jq
-
       - run:
           name: Install flyway
           command: |
             curl https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/5.1.1/flyway-commandline-5.1.1-linux-x64.tar.gz | tar xvz
-
       - run:
           name: Deploy
           command: |
             mkdir -p $EXTRACT_DEST
             tar -xvzf artifacts/timesheets-server-$CIRCLE_SHA1.tgz -C $EXTRACT_DEST
             cd $EXTRACT_DEST
-
             cf login -a $CF_API -u "$CF_USERNAME" -p "$CF_PASSWORD" -o "$CF_ORG" -s "$CF_SPACE"
             cf push -f manifest-timesheets.yml
             bash ./migrate-databases.sh tracker-timesheets /tmp/extracted-archive/migrations /root/project
-
-
 workflows:
   version: 2
   deployment-pipeline:
